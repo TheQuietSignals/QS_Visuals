@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0f0f1a;
+    font-family: Georgia, serif;
+    color: #e8e8f0;
+  }
+  #w {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 32px 24px 28px;
+  }
+  .hed {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #4a7fd4;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    margin-bottom: 5px;
+    font-weight: 400;
+  }
+  .ttl {
+    font-size: 18px;
+    color: #e8e8f0;
+    margin-bottom: 4px;
+    font-weight: bold;
+    line-height: 1.3;
+  }
+  .sub {
+    font-size: 13px;
+    color: #555;
+    font-style: italic;
+    margin-bottom: 24px;
+  }
+  #fig {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  #fig svg {
+    width: 160px;
+    height: auto;
+    display: block;
+  }
+  #info {
+    border-left: 3px solid #2a2a42;
+    padding: 14px 18px;
+    background: #14142a;
+    min-height: 90px;
+    transition: border-color 0.15s;
+    margin-bottom: 18px;
+  }
+  #i-cat {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    color: #555;
+    margin-bottom: 4px;
+  }
+  #i-title {
+    font-size: 15px;
+    color: #e8e8f0;
+    margin-bottom: 6px;
+  }
+  #i-desc {
+    font-size: 12.5px;
+    color: #b0b0c0;
+    line-height: 1.65;
+  }
+  .lgd {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .li {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: #555;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+  }
+  .ld { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .interactive-note {
+    font-size: 11px;
+    color: #444;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    letter-spacing: 0.06em;
+  }
+</style>
+</head>
+<body>
+<div id="w">
+  <p class="hed">Data being gathered and shared about you</p>
+  <p class="ttl">Your Data Portrait: 1,500 Points and Counting</p>
+  <p class="sub">Hover over dots to see some of what gets collected.</p>
+  <div id="fig">
+    <svg id="svg" viewBox="0 0 200 420" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <clipPath id="cp">
+          <circle id="hd" cx="100" cy="48" r="37"/>
+          <path id="bd" d="M28,105 C28,97 172,97 172,105 L160,370 L40,370 Z"/>
+        </clipPath>
+      </defs>
+      <circle cx="100" cy="48" r="37" fill="#0f0f1a" stroke="#2a2a3e" stroke-width="1.5"/>
+      <path d="M28,105 C28,97 172,97 172,105 L160,370 L40,370 Z" id="bdv" fill="#0f0f1a" stroke="#2a2a3e" stroke-width="1.5"/>
+      <g id="dg" clip-path="url(#cp)"></g>
+    </svg>
+  </div>
+  <div id="info">
+    <div id="i-cat"></div>
+    <div id="i-title">Hover a dot to explore what gets collected</div>
+    <div id="i-desc"></div>
+  </div>
+  <div class="lgd">
+    <div class="li"><div class="ld" style="background:#4a7fd4"></div>Digital</div>
+    <div class="li"><div class="ld" style="background:#f0a500"></div>Physical</div>
+    <div class="li"><div class="ld" style="background:#4ac9a0"></div>Inferred</div>
+  </div>
+  <p class="interactive-note">● Interactive — tap or hover any dot to explore</p>
+</div>
+
+<script>
+var D = [
+  {c:"Digital",  k:"#4a7fd4", t:"Search History",         d:"Every query you type — topics, products, symptoms, people — is logged, timestamped, and sold. Keyword patterns build an intent profile more revealing than most diaries."},
+  {c:"Digital",  k:"#4a7fd4", t:"Browsing History",        d:"Sites visited, time spent, and scroll depth are tracked across sessions via cookies, pixels, and browser fingerprinting — often across multiple devices simultaneously."},
+  {c:"Digital",  k:"#4a7fd4", t:"Purchase History",        d:"Online transactions are logged in full. Retailers sell this to brokers who use it to infer income, lifestyle stage, and future purchase intent."},
+  {c:"Digital",  k:"#4a7fd4", t:"Social Media Activity",   d:"Follows, likes, shares, and how long you pause on a post are behavioral signals used to map your interests, politics, and social graph."},
+  {c:"Digital",  k:"#4a7fd4", t:"Email Subscriptions",     d:"Which newsletters you receive, open, and click map your professional identity and topic affiliations — sold as audience segments to advertisers."},
+  {c:"Digital",  k:"#4a7fd4", t:"App SDK Data",            d:"Free apps embed third-party SDKs that transmit your location and behavior to brokers as part of their revenue model — rarely disclosed upfront."},
+  {c:"Digital",  k:"#4a7fd4", t:"Podcast Listening",       d:"Platforms log every episode played, completion rate, and where you stopped — building a content interest graph used to target ads across other channels."},
+  {c:"Digital",  k:"#4a7fd4", t:"Music Behavior",          d:"Playlist history, skips, and replays are mapped to mood states and personality models. Your listening patterns are a commercial data asset."},
+  {c:"Digital",  k:"#4a7fd4", t:"Smart TV Viewing",        d:"ACR technology logs what you watch and for how long — including content from HDMI inputs — without meaningful user opt-in at setup."},
+  {c:"Digital",  k:"#4a7fd4", t:"Ad Engagement",           d:"Ads you click are high-value purchase intent signals fed back into ad ecosystems and sold to competing advertisers targeting the same categories."},
+  {c:"Digital",  k:"#4a7fd4", t:"Loyalty Card Purchases",  d:"Over 1,400 brands sell loyalty card data to brokers. Every transaction links your identity to a product, store, and timestamp — permanently."},
+  {c:"Digital",  k:"#4a7fd4", t:"Voice Assistant Queries", d:"Alexa, Siri, and Google Assistant log queries, response times, and device context. Some recordings are reviewed by human contractors."},
+  {c:"Digital",  k:"#4a7fd4", t:"Food Delivery History",   d:"Every order reveals dietary preferences, household size, spending range, home address, and daily schedule — a behavioral window into private life."},
+  {c:"Digital",  k:"#4a7fd4", t:"Ride-share History",      d:"Pickup and dropoff locations map your social life, medical visits, work schedule, and personal relationships — independent of your own location logs."},
+  {c:"Digital",  k:"#4a7fd4", t:"In-App Behavior",         d:"Scroll depth, tap patterns, and time-on-screen are micro-signals beyond what you explicitly click — sold as engagement data by platform operators."},
+  {c:"Digital",  k:"#4a7fd4", t:"Streaming Watch Time",    d:"Not just what you watch — pausing, rewatching, and abandoning content builds a behavioral model used to infer mood, personality, and household composition."},
+  {c:"Digital",  k:"#4a7fd4", t:"Banking App Activity",    d:"Balance checks, transaction patterns, and budgeting connections create a financial behavior map that signals life changes before you announce them."},
+  {c:"Digital",  k:"#4a7fd4", t:"Photo Metadata",          d:"Images uploaded to cloud services carry embedded GPS coordinates, timestamps, and device IDs — a location history hidden inside ordinary photos."},
+  {c:"Digital",  k:"#4a7fd4", t:"Calendar Data",           d:"Apps with calendar access log meeting patterns, recurring events, and location data — inferring work schedule, travel habits, and social activity."},
+  {c:"Digital",  k:"#4a7fd4", t:"Gaming Behavior",         d:"In-game purchases, play times, and chat activity map risk tolerance, social patterns, and spending behavior — sold to advertisers outside the gaming context."},
+  {c:"Physical", k:"#f0a500", t:"GPS Location",            d:"App SDKs transmit your precise coordinates continuously. Brokers process 17 billion+ location signals from around 1 billion mobile devices every single day."},
+  {c:"Physical", k:"#f0a500", t:"Connected Car Data",      d:"GM was found to have sold driver geolocation and behavior data as often as every three seconds. Your commute route is a live commercial data feed."},
+  {c:"Physical", k:"#f0a500", t:"Retail Beacon Proximity", d:"Bluetooth beacons in stores log which aisles you enter, how long you linger, and how often you return — without requiring any app interaction."},
+  {c:"Physical", k:"#f0a500", t:"Facial Recognition",      d:"Major retailers have tested facial recognition at store entrances to identify returning shoppers. Your face can function as a persistent identifier."},
+  {c:"Physical", k:"#f0a500", t:"WiFi Probe Requests",     d:"Your phone broadcasts probe signals seeking known networks even with WiFi off — passively identifying and tracking your device without connection."},
+  {c:"Physical", k:"#f0a500", t:"In-Store Dwell Time",     d:"Overhead cameras and beacons measure time spent in specific sections. This behavior data is packaged and sold to manufacturers as consumer insight."},
+  {c:"Physical", k:"#f0a500", t:"Credit Card Location",    d:"Every swipe logs merchant, time, and amount — a parallel location and spending history independent of your phone and unaffected by airplane mode."},
+  {c:"Physical", k:"#f0a500", t:"Real-Time Bid Data",      d:"When any ad loads near you, an auction broadcasts your location and profile to hundreds of bidders simultaneously — data retained whether or not they win."},
+  {c:"Physical", k:"#f0a500", t:"Fitness Tracker Data",    d:"Heart rate, sleep patterns, step count, and GPS routes are transmitted to cloud platforms and in some cases sold to insurers and data brokers."},
+  {c:"Physical", k:"#f0a500", t:"Smart Home Behavior",     d:"Wake times, sleep times, temperature adjustments, and lighting patterns create a behavioral fingerprint of your household routine sold by device makers."},
+  {c:"Physical", k:"#f0a500", t:"License Plate Readers",   d:"Private networks of cameras log your plate, location, and time. This data is sold to insurance companies, debt collectors, and repo firms."},
+  {c:"Physical", k:"#f0a500", t:"ATM Withdrawals",         d:"Cash withdrawals log machine location and time — revealing travel patterns even when you deliberately avoid digital purchases."},
+  {c:"Physical", k:"#f0a500", t:"Phone Accelerometer",     d:"Motion sensor data can reveal transportation mode, gait, and physical activity without GPS — used to infer behavior when location is disabled."},
+  {c:"Physical", k:"#f0a500", t:"Prescription Records",    d:"Pharmacy data is sold by data brokers to pharmaceutical companies, employers, and insurers — often without the patient's knowledge or clear consent."},
+  {c:"Physical", k:"#f0a500", t:"Bank Branch Visits",      d:"Physical branch visits log location and frequency — behavioral signals that indicate financial stress, major transactions, or life events."},
+  {c:"Physical", k:"#f0a500", t:"Utility Usage Patterns",  d:"Smart meter data reveals when you are home, your schedule, and even appliance-level behavior — sold by some utilities to energy data brokers."},
+  {c:"Inferred", k:"#4ac9a0", t:"Interest Graph",          d:"Assembled from your full digital trail, this map of topic engagement powers personalized recommendations and ad targeting across nearly every platform you use."},
+  {c:"Inferred", k:"#4ac9a0", t:"Health Inferences",       d:"Brokers infer conditions from purchase patterns, search history, and location. Pharmacy trips, clinic visits, and supplement orders are all readable signals."},
+  {c:"Inferred", k:"#4ac9a0", t:"Political Score",         d:"Derived from content engagement, social media activity, and voter registration — political affinity scores are sold openly to campaigns, PACs, and issue groups."},
+  {c:"Inferred", k:"#4ac9a0", t:"Income Estimate",         d:"Brokers estimate household income from property records, spending patterns, and neighborhood data — no financial disclosure required on your part."},
+  {c:"Inferred", k:"#4ac9a0", t:"Relationship Network",    d:"By analyzing interaction frequency across platforms, brokers can map your closest personal and professional relationships — including ones you keep private."},
+  {c:"Inferred", k:"#4ac9a0", t:"Lifestyle Category",      d:"Acxiom holds up to 3,000 data points per person to assign lifestyle segments used to predict spending behavior, content affinity, and brand loyalty."},
+  {c:"Inferred", k:"#4ac9a0", t:"Charitable Likelihood",   d:"Probability of donating to causes is scored from behavioral and purchase data — sold to nonprofits and political campaigns for targeted solicitation."},
+  {c:"Inferred", k:"#4ac9a0", t:"Brand Affinity Score",    d:"Derived from purchase history and content engagement, these scores predict which brands you will spend with next — sold directly to those brands."},
+  {c:"Inferred", k:"#4ac9a0", t:"Pregnancy Likelihood",    d:"Target famously inferred pregnancy from purchase patterns. Brokers model probability from demographic data and life event signals, sold without consent."},
+  {c:"Inferred", k:"#4ac9a0", t:"Mental Health Score",     d:"Brokers have advertised lists of people with depression and anxiety inferred from app behavior — sold with minimal vetting of buyers for as little as $275 per 5,000 records."},
+  {c:"Inferred", k:"#4ac9a0", t:"Moving Likelihood",       d:"Inferred from search behavior and life event signals — sold to movers, real estate agents, and banks before you list your home or tell your landlord."},
+  {c:"Inferred", k:"#4ac9a0", t:"Job Change Prediction",   d:"LinkedIn activity, resume uploads, and behavioral shifts are scored and sold to recruiters and competitors as leading indicators of career transition."},
+  {c:"Inferred", k:"#4ac9a0", t:"Sleep Pattern Inference", d:"App timestamps, smart home signals, and phone unlock times are modeled to infer your sleep schedule — used to optimize the timing of ad delivery."},
+  {c:"Inferred", k:"#4ac9a0", t:"Religious Affinity",      d:"Derived from content engagement, purchase behavior, and community data — religious affinity scores are sold to marketers and political organizations."},
+  {c:"Inferred", k:"#4ac9a0", t:"Education Level",         d:"Inferred from writing patterns, content consumption, and public records — used to segment audiences for financial products, job ads, and political messaging."},
+  {c:"Inferred", k:"#4ac9a0", t:"Net Worth Estimate",      d:"Assembled from property ownership, vehicle records, investment signals, and spending patterns — sold to luxury marketers and financial service providers."},
+  {c:"Inferred", k:"#4ac9a0", t:"Divorce Likelihood",      d:"Life event predictors monitor behavioral shifts — reduced joint purchases, new solo accounts, and address changes — sold to legal and financial services."},
+  {c:"Inferred", k:"#4ac9a0", t:"Homeowner vs. Renter",    d:"Property and deed records combined with address history create a housing status score that shapes offers for insurance, credit, and home services."},
+  {c:"Inferred", k:"#4ac9a0", t:"Pet Ownership",           d:"Inferred from purchase history and loyalty card data at pet retailers — used to segment audiences for veterinary services, pet food brands, and travel products."},
+  {c:"Inferred", k:"#4ac9a0", t:"Ethnicity Inference",     d:"Derived from name analysis, neighborhood data, and behavioral signals. The FTC has noted this category is used for targeting without explicit disclosure."},
+  {c:"Inferred", k:"#4ac9a0", t:"Credit Score Range",      d:"Experian ConsumerView holds thousands of data points on 300 million Americans, including credit behavior signals sold to insurers, landlords, and employers."},
+  {c:"Inferred", k:"#4ac9a0", t:"Recent Life Events",      d:"New parents, recent graduates, newly divorced, and recently bereaved are flagged as high-value segments sold to companies targeting life transitions."},
+  {c:"Inferred", k:"#4ac9a0", t:"Vehicle Ownership",       d:"Make, model, year, and estimated value of your vehicle are tracked from registration records and combined with driving behavior data from connected car programs."},
+  {c:"Inferred", k:"#4ac9a0", t:"Travel Frequency",        d:"Inferred from location patterns, ride-share history, and airline loyalty programs — sold to hospitality brands, travel insurers, and credit card companies."}
+];
+
+window.addEventListener("load", function() {
+  var svg    = document.getElementById("svg");
+  var hd     = document.getElementById("hd");
+  var bdv    = document.getElementById("bdv");
+  var dg     = document.getElementById("dg");
+  var iCat   = document.getElementById("i-cat");
+  var iTitle = document.getElementById("i-title");
+  var iDesc  = document.getElementById("i-desc");
+  var info   = document.getElementById("info");
+  var bgCols = ["#4a7fd4","#f0a500","#4ac9a0"];
+  var gap = 11, valid = [];
+
+  for (var x = 5; x < 195; x += gap) {
+    for (var y = 5; y < 415; y += gap) {
+      try {
+        var pt = svg.createSVGPoint();
+        pt.x = x; pt.y = y;
+        if (hd.isPointInFill(pt) || bdv.isPointInFill(pt)) valid.push([x, y]);
+      } catch(e) {}
+    }
+  }
+
+  for (var i = valid.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = valid[i]; valid[i] = valid[j]; valid[j] = tmp;
+  }
+
+  valid.forEach(function(pos, i) {
+    var el = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    el.setAttribute("cx", pos[0]);
+    el.setAttribute("cy", pos[1]);
+
+    if (i < D.length) {
+      var dp = D[i];
+      el.setAttribute("r", "5.5");
+      el.setAttribute("fill", dp.k);
+      el.setAttribute("fill-opacity", "0.88");
+      el.style.cursor = "pointer";
+      (function(dot, data) {
+        dot.addEventListener("mouseenter", function() {
+          dot.setAttribute("r", "7.5");
+          dot.setAttribute("fill-opacity", "1");
+          iCat.textContent = data.c;
+          iCat.style.color = data.k;
+          iTitle.textContent = data.t;
+          iTitle.style.color = "#e8e8f0";
+          iTitle.style.fontWeight = "bold";
+          iDesc.textContent = data.d;
+          info.style.borderLeftColor = data.k;
+        });
+        dot.addEventListener("mouseleave", function() {
+          dot.setAttribute("r", "5.5");
+          dot.setAttribute("fill-opacity", "0.88");
+        });
+      })(el, dp);
+    } else {
+      var r = (i - D.length) / ((valid.length - D.length) || 1);
+      el.setAttribute("r", "4.5");
+      el.setAttribute("fill", bgCols[Math.floor(r * 3) % 3]);
+      el.setAttribute("fill-opacity", "0.2");
+    }
+    dg.appendChild(el);
+  });
+});
+</script>
+</body>
+</html>
