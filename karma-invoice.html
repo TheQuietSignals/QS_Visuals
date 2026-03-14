@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Karma Invoice</title>
+<style>
+  body {
+    background: transparent;
+    margin: 0;
+    padding: 0;
+  }
+
+  #karma-wrap {
+    font-family: 'Courier New', Courier, monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding: 2rem 1rem;
+    box-sizing: border-box;
+  }
+
+  #karma-wrap * { box-sizing: border-box; }
+
+  .invoice {
+    background: #f5f0e8;
+    width: 100%;
+    max-width: 580px;
+    padding: 2.5rem;
+    color: #1a1a1a;
+    position: relative;
+  }
+
+  .invoice-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #1a1a1a;
+    padding-bottom: 1.2rem;
+  }
+
+  .invoice-from h1 {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.3rem;
+    font-weight: bold;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .invoice-from p {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.7rem;
+    color: #555;
+    margin: 0.2rem 0 0;
+    letter-spacing: 0.04em;
+  }
+
+  .invoice-meta {
+    text-align: right;
+    font-size: 0.72rem;
+    line-height: 1.8;
+    color: #333;
+    font-family: 'Courier New', Courier, monospace;
+  }
+
+  .invoice-meta .inv-number {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #1a1a1a;
+    display: block;
+  }
+
+  #inv-date, #inv-due { display: block; }
+
+  .billed-to {
+    margin-bottom: 1.8rem;
+    font-size: 0.72rem;
+    line-height: 1.7;
+    color: #333;
+    font-family: 'Courier New', Courier, monospace;
+  }
+
+  .billed-to strong {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #1a1a1a;
+    display: block;
+    margin-bottom: 0.2rem;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+    font-size: 0.88rem;
+    font-family: 'Courier New', Courier, monospace;
+  }
+
+  thead tr { border-bottom: 1px solid #1a1a1a; }
+
+  thead th {
+    padding: 0.4rem 0.5rem;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-size: 0.65rem;
+    color: #555;
+  }
+
+  thead th:last-child { text-align: right; }
+
+  tbody tr td {
+    padding: 0.75rem 0.5rem;
+    vertical-align: top;
+    line-height: 1.5;
+    font-family: 'Courier New', Courier, monospace;
+  }
+
+  tbody tr td:last-child { text-align: right; white-space: nowrap; }
+
+  .offense-row { border-bottom: 1px dashed #ccc; }
+  .credit-row { border-bottom: 1px dashed #ccc; }
+  .credit-row td:last-child { color: #2a6e3f; }
+
+  .desc-label {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #888;
+    display: block;
+    margin-bottom: 0.15rem;
+  }
+
+  .desc-text {
+    font-size: 0.92rem;
+    color: #1a1a1a;
+    display: block;
+    transition: opacity 0.2s;
+  }
+
+  .totals { width: 100%; font-size: 0.75rem; font-family: 'Courier New', Courier, monospace; }
+  .totals tr td { padding: 0.3rem 0.5rem; }
+  .totals tr td:last-child { text-align: right; }
+
+  .total-row {
+    border-top: 2px solid #1a1a1a;
+    font-weight: bold;
+    font-size: 0.88rem;
+  }
+
+  .total-row td { padding-top: 0.6rem; }
+
+  .balance-due { background: #1a1a1a; }
+  .balance-due td {
+    padding: 0.6rem 0.5rem !important;
+    font-size: 0.9rem;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    color: #f5f0e8;
+  }
+
+  .footer-note {
+    margin-top: 1.8rem;
+    padding-top: 1rem;
+    border-top: 1px solid #ccc;
+    font-size: 0.65rem;
+    color: #777;
+    line-height: 1.7;
+    text-align: center;
+    letter-spacing: 0.03em;
+    font-family: 'Courier New', Courier, monospace;
+  }
+
+  .stamp {
+    position: absolute;
+    top: 2.2rem;
+    right: 2.2rem;
+    border: 3px solid rgba(180,60,60,0.55);
+    color: rgba(180,60,60,0.55);
+    font-size: 0.65rem;
+    font-weight: bold;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.5rem;
+    transform: rotate(-12deg);
+    pointer-events: none;
+    line-height: 1.4;
+    text-align: center;
+    font-family: 'Courier New', Courier, monospace;
+  }
+
+  .randomize-btn {
+    margin-top: 1.5rem;
+    background: #4169e1;
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    width: 100%;
+    max-width: 580px;
+  }
+
+  .randomize-btn:hover { background: #2a4fc0; }
+  .fade { opacity: 0.3; }
+</style>
+</head>
+<body>
+<div id="karma-wrap">
+  <div class="invoice" id="invoice">
+    <div class="stamp">PAST<br>DUE</div>
+    <div class="invoice-header">
+      <div class="invoice-from">
+        <h1>Karma Inc.</h1>
+        <p>Universe Accounts Receivable Division</p>
+      </div>
+      <div class="invoice-meta">
+        <span class="inv-number" id="inv-number">INVOICE #00001</span>
+        <span id="inv-date">DATE: FEB 9, 2026</span>
+        <span id="inv-due">DUE: MAR 10, 2026</span>
+      </div>
+    </div>
+
+    <div class="billed-to">
+      <strong>Billed To:</strong>
+      You know who you are.<br>
+      Attn: Conscience Dept.
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Type</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="offense-row">
+          <td>
+            <span class="desc-label">Offense</span>
+            <span class="desc-text" id="offense-text">—</span>
+          </td>
+          <td>Debit</td>
+          <td id="offense-amt">—</td>
+        </tr>
+        <tr class="credit-row">
+          <td>
+            <span class="desc-label">Credit on File</span>
+            <span class="desc-text" id="credit-text">—</span>
+          </td>
+          <td>Credit</td>
+          <td id="credit-amt">—</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="totals">
+      <tbody>
+        <tr><td>Subtotal</td><td id="subtotal">—</td></tr>
+        <tr><td>Credits Applied</td><td id="credits-applied">—</td></tr>
+        <tr><td>Late Fee (if applicable)</td><td>TBD</td></tr>
+        <tr class="total-row balance-due">
+          <td>BALANCE DUE</td>
+          <td id="balance-due">—</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="footer-note">
+      Payment is due within 30 days of the inciting incident. Karma Inc. reserves the right to collect via irony, timing, or frustrating inconvenience. Disputes are not accepted at this time.
+    </div>
+  </div>
+
+  <button class="randomize-btn" onclick="randomize()">Generate My Invoice</button>
+</div>
+
+<script>
+  const offenses = [
+    { text: "Yelled at someone who wasn't the person you were actually mad at", amt: 38 },
+    { text: "Replied \"sounds good\" to an email you never read", amt: 22 },
+    { text: "Pretended not to see a text", amt: 19 },
+    { text: "Put the empty container back in", amt: 25 },
+    { text: "Laughed at someone's expense and called it a joke", amt: 44 },
+    { text: "Said \"Leaving now\" when you just started getting ready", amt: 17 },
+    { text: "Came home with coffee but only for yourself", amt: 84 },
+    { text: "Cut someone off in traffic", amt: 28 },
+  ];
+
+  const credits = [
+    { text: "Held the door for a stranger", amt: 18 },
+    { text: "Let someone merge", amt: 22 },
+    { text: "Picked up a tab without mentioning it", amt: 23 },
+    { text: "Listened without waiting for your turn to talk", amt: 40 },
+    { text: "Returned a shopping cart to the little cart corral thing", amt: 27 },
+    { text: "Told the truth when lying would've been easier", amt: 21 },
+    { text: "Said sorry first", amt: 24 },
+    { text: "Chased down the napkins you dropped", amt: 12 },
+    { text: "None", amt: 0 },
+  ];
+
+  let invCount = 0;
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function fmt(n) { return `${n.toFixed(2)} KU`; }
+
+  function randomize() {
+    const offense = pick(offenses);
+    const credit = pick(credits);
+    const balance = Math.max(0, offense.amt - credit.amt).toFixed(2);
+    invCount++;
+
+    document.getElementById('inv-number').textContent = `INVOICE #${String(invCount).padStart(5,'0')}`;
+
+    const oText = document.getElementById('offense-text');
+    const cText = document.getElementById('credit-text');
+    [oText, cText].forEach(el => el.classList.add('fade'));
+
+    setTimeout(() => {
+      oText.textContent = offense.text;
+      document.getElementById('offense-amt').textContent = fmt(offense.amt);
+      cText.textContent = credit.text;
+      document.getElementById('credit-amt').textContent = credit.amt > 0 ? `(${fmt(credit.amt)})` : '—';
+      document.getElementById('subtotal').textContent = fmt(offense.amt);
+      document.getElementById('credits-applied').textContent = credit.amt > 0 ? `(${fmt(credit.amt)})` : '—';
+      document.getElementById('balance-due').textContent = `${balance} KU`;
+      [oText, cText].forEach(el => el.classList.remove('fade'));
+    }, 180);
+  }
+
+  randomize();
+</script>
+</body>
+</html>
