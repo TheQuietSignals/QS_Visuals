@@ -126,7 +126,7 @@
     <div class="li"><div class="ld" style="background:#f0a500"></div>Physical</div>
     <div class="li"><div class="ld" style="background:#4ac9a0"></div>Inferred</div>
   </div>
-  <p class="interactive-note"></p>
+  <p class="interactive-note">● Interactive — tap or hover any dot to explore</p>
 </div>
 
 <script>
@@ -203,7 +203,10 @@ window.addEventListener("load", function() {
   var iDesc  = document.getElementById("i-desc");
   var info   = document.getElementById("info");
   var bgCols = ["#4a7fd4","#f0a500","#4ac9a0"];
-  var gap = 11, valid = [];
+  var isMobile = window.innerWidth < 600;
+  var dotR = isMobile ? "8" : "5.5";
+  var dotRActive = isMobile ? "10" : "7.5";
+  var gap = isMobile ? 17 : 11, valid = [];
 
   for (var x = 5; x < 195; x += gap) {
     for (var y = 5; y < 415; y += gap) {
@@ -227,13 +230,13 @@ window.addEventListener("load", function() {
 
     if (i < D.length) {
       var dp = D[i];
-      el.setAttribute("r", "5.5");
+      el.setAttribute("r", dotR);
       el.setAttribute("fill", dp.k);
       el.setAttribute("fill-opacity", "0.88");
       el.style.cursor = "pointer";
       (function(dot, data) {
         function activate() {
-          dot.setAttribute("r", "7.5");
+          dot.setAttribute("r", dotRActive);
           dot.setAttribute("fill-opacity", "1");
           iCat.textContent = data.c;
           iCat.style.color = data.k;
@@ -244,7 +247,7 @@ window.addEventListener("load", function() {
           info.style.borderLeftColor = data.k;
         }
         function deactivate() {
-          dot.setAttribute("r", "5.5");
+          dot.setAttribute("r", dotR);
           dot.setAttribute("fill-opacity", "0.88");
         }
         dot.addEventListener("mouseenter", activate);
