@@ -5,35 +5,35 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
+  body {
+    background: #0f0f1a;
+    font-family: Georgia, serif;
+    color: #e8e8f0;
+  }
   #w {
-    background: #0f0f1a !important;
     max-width: 520px;
     margin: 0 auto;
     padding: 32px 24px 28px;
-    font-family: Georgia, serif !important;
-    color: #e8e8f0 !important;
   }
-  #w * { color: inherit; }
   .hed {
-    font-size: 12px !important;
+    font-size: 12px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: #4a7fd4 !important;
-    font-family: 'Helvetica Neue', Arial, sans-serif !important;
+    color: #4a7fd4;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
     margin-bottom: 5px;
     font-weight: 400;
   }
   .ttl {
-    font-size: 18px !important;
-    color: #e8e8f0 !important;
+    font-size: 18px;
+    color: #e8e8f0;
     margin-bottom: 4px;
     font-weight: bold;
     line-height: 1.3;
   }
   .sub {
-    font-size: 13px !important;
-    color: #555 !important;
+    font-size: 13px;
+    color: #555;
     font-style: italic;
     margin-bottom: 24px;
   }
@@ -50,29 +50,52 @@
   #info {
     border-left: 3px solid #2a2a42;
     padding: 14px 18px;
-    background: #14142a !important;
+    background: #14142a;
     min-height: 90px;
     transition: border-color 0.15s;
     margin-bottom: 18px;
   }
   #i-cat {
-    font-size: 10px !important;
+    font-size: 10px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    font-family: 'Helvetica Neue', Arial, sans-serif !important;
-    color: #444 !important;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    color: #555;
     margin-bottom: 4px;
   }
-  #i-title { font-size: 15px !important; color: #e8e8f0 !important; margin-bottom: 6px; }
-  #i-desc  { font-size: 12.5px !important; color: #b0b0c0 !important; line-height: 1.65; }
-  .lgd { display: flex; gap: 18px; flex-wrap: wrap; }
+  #i-title {
+    font-size: 15px;
+    color: #e8e8f0;
+    margin-bottom: 6px;
+  }
+  #i-desc {
+    font-size: 12.5px;
+    color: #b0b0c0;
+    line-height: 1.65;
+  }
+  .lgd {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
   .li {
-    display: flex; align-items: center; gap: 7px;
-    font-size: 11px !important; color: #555 !important; letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: #555;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    font-family: 'Helvetica Neue', Arial, sans-serif !important;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
   }
   .ld { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .interactive-note {
+    font-size: 11px;
+    color: #444;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    letter-spacing: 0.06em;
+  }
 </style>
 </head>
 <body>
@@ -103,6 +126,7 @@
     <div class="li"><div class="ld" style="background:#f0a500"></div>Physical</div>
     <div class="li"><div class="ld" style="background:#4ac9a0"></div>Inferred</div>
   </div>
+  <p class="interactive-note">● Interactive — tap or hover any dot to explore</p>
 </div>
 
 <script>
@@ -170,10 +194,10 @@ var D = [
 ];
 
 window.addEventListener("load", function() {
-  var svg   = document.getElementById("svg");
-  var hd    = document.getElementById("hd");
-  var bdv   = document.getElementById("bdv");
-  var dg    = document.getElementById("dg");
+  var svg    = document.getElementById("svg");
+  var hd     = document.getElementById("hd");
+  var bdv    = document.getElementById("bdv");
+  var dg     = document.getElementById("dg");
   var iCat   = document.getElementById("i-cat");
   var iTitle = document.getElementById("i-title");
   var iDesc  = document.getElementById("i-desc");
@@ -207,7 +231,6 @@ window.addEventListener("load", function() {
       el.setAttribute("fill", dp.k);
       el.setAttribute("fill-opacity", "0.88");
       el.style.cursor = "pointer";
-
       (function(dot, data) {
         dot.addEventListener("mouseenter", function() {
           dot.setAttribute("r", "7.5");
@@ -218,7 +241,6 @@ window.addEventListener("load", function() {
           iTitle.style.color = "#e8e8f0";
           iTitle.style.fontWeight = "bold";
           iDesc.textContent = data.d;
-          iDesc.style.color = "#999";
           info.style.borderLeftColor = data.k;
         });
         dot.addEventListener("mouseleave", function() {
@@ -226,7 +248,6 @@ window.addEventListener("load", function() {
           dot.setAttribute("fill-opacity", "0.88");
         });
       })(el, dp);
-
     } else {
       var r = (i - D.length) / ((valid.length - D.length) || 1);
       el.setAttribute("r", "4.5");
