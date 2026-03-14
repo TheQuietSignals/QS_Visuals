@@ -232,7 +232,7 @@ window.addEventListener("load", function() {
       el.setAttribute("fill-opacity", "0.88");
       el.style.cursor = "pointer";
       (function(dot, data) {
-        dot.addEventListener("mouseenter", function() {
+        function activate() {
           dot.setAttribute("r", "7.5");
           dot.setAttribute("fill-opacity", "1");
           iCat.textContent = data.c;
@@ -242,11 +242,17 @@ window.addEventListener("load", function() {
           iTitle.style.fontWeight = "bold";
           iDesc.textContent = data.d;
           info.style.borderLeftColor = data.k;
-        });
-        dot.addEventListener("mouseleave", function() {
+        }
+        function deactivate() {
           dot.setAttribute("r", "5.5");
           dot.setAttribute("fill-opacity", "0.88");
-        });
+        }
+        dot.addEventListener("mouseenter", activate);
+        dot.addEventListener("mouseleave", deactivate);
+        dot.addEventListener("touchstart", function(e) {
+          e.preventDefault();
+          activate();
+        }, {passive: false});
       })(el, dp);
     } else {
       var r = (i - D.length) / ((valid.length - D.length) || 1);
