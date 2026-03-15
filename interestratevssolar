@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  #qs-chart-root {
+    background: #0d1117;
+    color: #e6edf3;
+    font-family: Georgia, serif;
+    padding: 32px 24px 24px;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  #qs-chart-root .title { font-size: 1.6rem; font-weight: 600; color: #e6edf3; margin-bottom: 7px; }
+  #qs-chart-root .subtitle { font-size: 1.05rem; color: #8b949e; margin-bottom: 28px; font-style: italic; }
+  #qs-chart-root .chart-wrap { position: relative; }
+  #qs-chart-root svg { width: 760px; height: 400px; max-width: 100%; display: block; overflow: visible; }
+  #qs-chart-root .legend { display: flex; gap: 28px; margin-top: 18px; justify-content: center; }
+  #qs-chart-root .legend-item { display: flex; align-items: center; gap: 9px; font-size: 0.95rem; color: #8b949e; font-family: sans-serif; }
+  #qs-chart-root .legend-line { width: 26px; height: 3px; border-radius: 2px; }
+  #qs-chart-root .tooltip {
+    position: absolute; background: #161b22; border: 1px solid #30363d;
+    border-radius: 7px; padding: 11px 15px; pointer-events: none;
+    opacity: 0; transition: opacity 0.12s; font-family: sans-serif;
+    font-size: 0.76rem; min-width: 178px; z-index: 10;
+  }
+  #qs-chart-root .tt-year { font-size: 0.88rem; font-weight: 700; color: #e6edf3; margin-bottom: 9px; padding-bottom: 7px; border-bottom: 1px solid #21262d; }
+  #qs-chart-root .tt-row { display: flex; justify-content: space-between; gap: 14px; margin-top: 5px; }
+  #qs-chart-root .tt-label { color: #8b949e; }
+  #qs-chart-root .tt-note-row { margin-top: 8px; padding-top: 7px; border-top: 1px solid #21262d; font-size: 0.7rem; color: #6b7280; font-style: italic; display: none; }
+  #qs-chart-root .source { font-size: 0.82rem; color: #3d444d; margin-top: 14px; text-align: right; font-family: sans-serif; }
+</style>
+</head>
+<body>
+<div id="qs-chart-root">
+  <div class="title">Interest Rates vs Solar Installs</div>
+  <div class="subtitle">U.S. residential solar installations (GW) vs. average solar loan rate, 2019–2024</div>
+  <div class="chart-wrap">
+    <svg id="chart" viewBox="0 0 760 400"></svg>
+    <div class="tooltip" id="tooltip">
+      <div class="tt-year" id="tt-year"></div>
+      <div class="tt-row">
+        <span class="tt-label">Installations</span>
+        <span class="tt-val" id="tt-inst" style="color:#3b82f6;font-weight:700"></span>
+      </div>
+      <div class="tt-row">
+        <span class="tt-label">Loan Rate</span>
+        <span class="tt-val" id="tt-rate" style="color:#f59e0b;font-weight:700"></span>
+      </div>
+      <div class="tt-note-row" id="tt-note-row"><span id="tt-note"></span></div>
+    </div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-line" style="background:#3b82f6"></div><span>Residential Installations (GW)</span></div>
+    <div class="legend-item"><div class="legend-line" style="background:#f59e0b"></div><span>Avg. Solar Loan Rate (%)</span></div>
+  </div>
+  <div class="source">Sources: SEIA Solar Market Insight 2024 Year in Review &nbsp;·&nbsp; Wood Mackenzie</div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const data = [
+    { year: 2019, inst: 2.8, rate: 1.9, note: null },
+    { year: 2020, inst: 3.2, rate: 1.8, note: null },
+    { year: 2021, inst: 4.2, rate: 1.9, note: null },
+    { year: 2022, inst: 6.1, rate: 2.5, note: null },
+    { year: 2023, inst: 6.8, rate: 6.1, note: 'Record high — driven by CA rush ahead of policy change' },
+    { year: 2024, inst: 4.7, rate: 7.2, note: '−32% from 2023 peak as rates tripled' },
+  ];
+
+  const vw = 760, vh = 400;
+  const m = { top: 36, right: 90, bottom: 48, left: 90 };
+  const W = vw - m.left - m.right;
+  const H = vh - m.top - m.bottom;
+  const maxVal = 8;
+
+  const xScale = v => m.left + ((v - 2019) / 5) * W;
+  const yScale = v => m.top + H - (v / maxVal) * H;
+
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('chart');
+  const mk = (tag, attrs, parent) => {
+    const e = document.createElementNS(ns, tag);
+    Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v));
+    (parent || svg).appendChild(e); return e;
+  };
+  const txt = (content, attrs, parent) => {
+    const e = mk('text', attrs, parent); e.textContent = content; return e;
+  };
+
+  // Defs
+  const defs = mk('defs', {});
+  const mkGrad = (id, color) => {
+    const g = mk('linearGradient', { id, x1:'0', y1:'0', x2:'0', y2:'1' }, defs);
+    mk('stop', { offset:'0%', 'stop-color': color, 'stop-opacity':'0.2' }, g);
+    mk('stop', { offset:'100%', 'stop-color': color, 'stop-opacity':'0.01' }, g);
+  };
+  mkGrad('gI', '#3b82f6');
+  mkGrad('gR', '#f59e0b');
+
+  const mkArrow = (id, color) => {
+    const marker = mk('marker', { id, markerWidth:'7', markerHeight:'7', refX:'5', refY:'3.5', orient:'auto' }, defs);
+    mk('polygon', { points:'0 0, 7 3.5, 0 7', fill: color }, marker);
+  };
+  mkArrow('arrowBlue', '#3b82f660');
+  mkArrow('arrowPink', '#e879f960');
+
+  // Grid + axis ticks
+  [0, 2, 4, 6, 8].forEach(v => {
+    mk('line', { x1: m.left, y1: yScale(v), x2: m.left + W, y2: yScale(v), stroke: '#1c2333', 'stroke-width': '1' });
+    txt(v,       { x: m.left - 14, y: yScale(v) + 4, 'text-anchor': 'end',   fill: '#3b82f6', 'font-size': '15', 'font-family': 'sans-serif', opacity: '0.7' });
+    txt(v + '%', { x: m.left + W + 14, y: yScale(v) + 4, 'text-anchor': 'start', fill: '#f59e0b', 'font-size': '15', 'font-family': 'sans-serif', opacity: '0.7' });
+  });
+
+  // Rotated axis labels
+  const mkRotLabel = (content, x, y, color) => {
+    const e = mk('text', { x, y, fill: color, 'font-size': '13', 'font-family': 'sans-serif',
+      'text-anchor': 'middle', 'letter-spacing': '0.06em', transform: `rotate(-90, ${x}, ${y})` });
+    e.textContent = content; svg.appendChild(e);
+  };
+  mkRotLabel('INSTALLATIONS (GW)', m.left - 58, m.top + H / 2, '#3b82f6');
+  mkRotLabel('LOAN RATE (%)', m.left + W + 58, m.top + H / 2, '#f59e0b');
+
+  // Axis borders
+  mk('line', { x1: m.left,     y1: m.top,     x2: m.left,     y2: m.top + H, stroke: '#21262d', 'stroke-width': '1' });
+  mk('line', { x1: m.left + W, y1: m.top,     x2: m.left + W, y2: m.top + H, stroke: '#21262d', 'stroke-width': '1' });
+  mk('line', { x1: m.left,     y1: m.top + H, x2: m.left + W, y2: m.top + H, stroke: '#21262d', 'stroke-width': '1' });
+
+  // X axis
+  data.forEach(d => {
+    mk('line', { x1: xScale(d.year), y1: m.top + H, x2: xScale(d.year), y2: m.top + H + 5, stroke: '#21262d', 'stroke-width': '1' });
+    txt(d.year, { x: xScale(d.year), y: m.top + H + 20, 'text-anchor': 'middle', fill: '#8b949e', 'font-size': '15', 'font-family': 'sans-serif' });
+  });
+
+  const iPts = data.map(d => ({ x: xScale(d.year), y: yScale(d.inst) }));
+  const rPts = data.map(d => ({ x: xScale(d.year), y: yScale(d.rate) }));
+  const baseY = m.top + H;
+
+  const areaPath = (pts, yBase) => {
+    const line = pts.map((p, i) => `${i ? 'L' : 'M'}${p.x},${p.y}`).join(' ');
+    return `${line} L${pts.at(-1).x},${yBase} L${pts[0].x},${yBase} Z`;
+  };
+  const linePath = pts => pts.map((p, i) => `${i ? 'L' : 'M'}${p.x},${p.y}`).join(' ');
+
+  mk('path', { d: areaPath(iPts, baseY), fill: 'url(#gI)' });
+  mk('path', { d: areaPath(rPts, baseY), fill: 'url(#gR)' });
+
+  const iLine = mk('path', { d: linePath(iPts), fill: 'none', stroke: '#3b82f6', 'stroke-width': '2.5', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+  const rLine = mk('path', { d: linePath(rPts), fill: 'none', stroke: '#f59e0b', 'stroke-width': '2.5', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+
+  const animLine = (path, delay) => {
+    const len = path.getTotalLength();
+    path.style.strokeDasharray = len;
+    path.style.strokeDashoffset = len;
+    setTimeout(() => {
+      path.style.transition = 'stroke-dashoffset 1400ms cubic-bezier(0.4,0,0.2,1)';
+      path.style.strokeDashoffset = 0;
+    }, delay);
+  };
+  animLine(iLine, 250);
+  animLine(rLine, 450);
+
+  // Dots
+  data.forEach((d, i) => {
+    mk('circle', { cx: iPts[i].x, cy: iPts[i].y, r: '4.5', fill: '#0d1117', stroke: '#3b82f6', 'stroke-width': '2' });
+    mk('circle', { cx: rPts[i].x, cy: rPts[i].y, r: '4.5', fill: '#0d1117', stroke: '#f59e0b', 'stroke-width': '2' });
+  });
+
+  // Crossover
+  const t = 0.7 / 3.2;
+  const crossX = xScale(2023 + t);
+  const crossY = yScale(6.8 - 2.1 * t);
+
+  const pulse = mk('circle', { cx: crossX, cy: crossY, r: '7', fill: 'none', stroke: '#e879f9', 'stroke-width': '1.5', opacity: '0.6' });
+  mk('circle', { cx: crossX, cy: crossY, r: '4', fill: '#e879f9', opacity: '0.85' });
+
+  // "rates overtake" label at y=4 line
+  const rLabelY = yScale(4);
+  mk('rect', { x: crossX - 88, y: rLabelY - 13, width: 176, height: 18, fill: '#161b22', rx: '3', opacity: '0.9' });
+  txt('rates overtake installations', { x: crossX, y: rLabelY, 'text-anchor': 'middle', fill: '#e879f9', 'font-size': '13', 'font-family': 'sans-serif', 'font-style': 'italic' });
+  mk('line', { x1: crossX, y1: rLabelY - 16, x2: crossX, y2: crossY + 9, stroke: '#e879f960', 'stroke-width': '1', 'marker-end': 'url(#arrowPink)' });
+
+  // "Interestingly" callout between y=6 and y=8, left of 2021
+  const iBox = { x: m.left + 6, y: 38, w: 270, h: 82 };
+  mk('rect', { x: iBox.x, y: iBox.y, width: iBox.w, height: iBox.h, fill: '#161b22', stroke: '#30363d', rx: '5', opacity: '0.92' });
+  const fo = document.createElementNS(ns, 'foreignObject');
+  fo.setAttribute('x', iBox.x + 10); fo.setAttribute('y', iBox.y + 9);
+  fo.setAttribute('width', iBox.w - 18); fo.setAttribute('height', iBox.h - 14);
+  fo.innerHTML = `<div xmlns="http://www.w3.org/1999/xhtml" style="font-family:sans-serif;font-size:13px;color:#8b949e;line-height:1.55"><span style="color:#e6edf3;font-style:italic">Interestingly,</span> 2023 was a record year — CA homeowners rushed to lock in net metering rates before a state policy change.</div>`;
+  svg.appendChild(fo);
+
+  // Arrow from callout to 2023 blue dot
+  const dot2023 = iPts[4];
+  mk('line', { x1: iBox.x + iBox.w + 2, y1: iBox.y + iBox.h / 2, x2: dot2023.x - 7, y2: dot2023.y, stroke: '#3b82f660', 'stroke-width': '1', 'stroke-dasharray': '3 2', 'marker-end': 'url(#arrowBlue)' });
+
+  // Pulse animation
+  let r = 7, growing = true;
+  setInterval(() => {
+    r = growing ? r + 0.15 : r - 0.15;
+    if (r >= 12) growing = false;
+    if (r <= 7) growing = true;
+    pulse.setAttribute('r', r);
+    pulse.setAttribute('opacity', 0.6 - (r - 7) / 20);
+  }, 30);
+
+  // Hover
+  const hLine = mk('line', { x1: 0, y1: m.top, x2: 0, y2: m.top + H, stroke: '#30363d', 'stroke-width': '1', 'stroke-dasharray': '4 3', opacity: '0' });
+  const tooltip = document.getElementById('tooltip');
+  const wrap = document.querySelector('#qs-chart-root .chart-wrap');
+
+  svg.addEventListener('mousemove', e => {
+    const rect = svg.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * (vw / rect.width);
+    let near = data[0], minD = Infinity;
+    data.forEach(d => { const dist = Math.abs(xScale(d.year) - mx); if (dist < minD) { minD = dist; near = d; } });
+    if (minD < 55) {
+      const px = xScale(near.year);
+      hLine.setAttribute('x1', px); hLine.setAttribute('x2', px); hLine.setAttribute('opacity', '1');
+      tooltip.style.opacity = '1';
+      const wr = wrap.getBoundingClientRect();
+      let tx = e.clientX - wr.left + 14;
+      if (tx + 195 > wr.width) tx = e.clientX - wr.left - 200;
+      tooltip.style.left = tx + 'px';
+      tooltip.style.top = Math.max(0, e.clientY - wr.top - 50) + 'px';
+      document.getElementById('tt-year').textContent = near.year;
+      document.getElementById('tt-inst').textContent = near.inst + ' GW';
+      document.getElementById('tt-rate').textContent = near.rate + '%';
+      const noteRow = document.getElementById('tt-note-row');
+      if (near.note) { noteRow.style.display = 'block'; document.getElementById('tt-note').textContent = near.note; }
+      else { noteRow.style.display = 'none'; }
+    } else {
+      hLine.setAttribute('opacity', '0'); tooltip.style.opacity = '0';
+    }
+  });
+  svg.addEventListener('mouseleave', () => { hLine.setAttribute('opacity', '0'); tooltip.style.opacity = '0'; });
+});
+</script>
+</body>
+</html>
