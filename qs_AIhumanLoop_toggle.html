@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body, html {
+    margin: 0;
+    padding: 0;
+    background: #0a0a12;
+  }
+  #qs-toggle-root {
+    background: #0a0a12;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 36px 20px 28px;
+    font-family: Georgia, 'Times New Roman', serif;
+    min-height: 560px;
+  }
+  #qs-toggle-root .qs-title {
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    transition: color 0.6s;
+  }
+  #qs-toggle-root .qs-subtitle {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 22px;
+    text-align: center;
+    transition: color 0.6s;
+  }
+  #qs-toggle-root .qs-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 24px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid #1e2a50;
+  }
+  #qs-toggle-root .qs-toggle button {
+    background: transparent;
+    border: none;
+    padding: 7px 20px;
+    font-family: Georgia, serif;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.35s, color 0.35s;
+  }
+  #qs-toggle-root .qs-toggle button.active-human {
+    background: #3a1f00;
+    color: #f0c87a;
+  }
+  #qs-toggle-root .qs-toggle button.active-ai {
+    background: #0a1640;
+    color: #8ab4ff;
+  }
+  #qs-toggle-root .qs-toggle button.inactive {
+    background: transparent;
+    color: #333;
+  }
+  #qs-toggle-root canvas { display: block; max-width: 100%; }
+</style>
+</head>
+<body>
+<div id="qs-toggle-root">
+  <div class="qs-title" id="qs-ttl">Sensorship Visualized</div>
+  <div class="qs-subtitle" id="qs-sub">The AI Content Loop — Humans as Sensors, Not Authors</div>
+  <div class="qs-toggle">
+    <button id="btn-human" class="inactive" onclick="setMode('human')">Human Model</button>
+    <button id="btn-ai" class="active-ai" onclick="setMode('ai')">AI Model</button>
+  </div>
+  <canvas id="qs-loop-canvas" width="500" height="440"></canvas>
+</div>
+<script>
+const canvas = document.getElementById('qs-loop-canvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+const cx = W/2, cy = H/2 + 14;
+const R = 150, NODE_R = 48;
+const n = 5;
+
+const MODES = {
+  ai: {
+    nodes: [
+      { label: ["AI generates", "content"] },
+      { label: ["Content is", "served to you"] },
+      { label: ["You watch,", "pause, react"] },
+      { label: ["Your signals", "are recorded"] },
+      { label: ["AI refines", "and retargets"] }
+    ],
+    bg: '#0a0a12',
+    trackColor: 'rgba(18,38,110,0.22)',
+    arcCore: [41,98,255],
+    arcGlow: [41,98,255],
+    particleMid: [80,140,255],
+    particleCore: [200,230,255],
+    nodeActiveFill: '#0a1640',
+    nodeIdleFill: '#0b1020',
+    nodeBorderActive: [100,165,255],
+    nodeBorderIdle: [28,55,140],
+    nodeGlow: [41,98,255],
+    textActive: [200,225,255],
+    textIdle: [65,95,165],
+    ringColor: [41,98,255],
+    burstColor: [41,98,255],
+    title: 'Sensorship Visualized',
+    subtitle: 'The AI Content Loop — Humans as Sensors, Not Authors',
+  },
+  human: {
+    nodes: [
+      { label: ["Human has", "an idea"] },
+      { label: ["Human creates", "content"] },
+      { label: ["Human", "publishes"] },
+      { label: ["Network", "distributes"] },
+      { label: ["Audience", "responds"] }
+    ],
+    bg: '#0f0a04',
+    trackColor: 'rgba(110,70,18,0.2)',
+    arcCore: [220,155,50],
+    arcGlow: [200,120,30],
+    particleMid: [240,185,80],
+    particleCore: [255,240,200],
+    nodeActiveFill: '#1e1000',
+    nodeIdleFill: '#130c04',
+    nodeBorderActive: [220,170,80],
+    nodeBorderIdle: [100,65,20],
+    nodeGlow: [200,130,40],
+    textActive: [255,235,180],
+    textIdle: [130,95,45],
+    ringColor: [200,130,40],
+    burstColor: [200,130,40],
+    title: 'The Original Model',
+    subtitle: 'Human Authorship — Humans as Creators, Not Sensors',
+  }
+};
+
+let currentMode = 'ai';
+let targetMode = 'ai';
+let blendT = 1; // 0 = start of transition, 1 = settled
+const BLEND_FRAMES = 40;
+
+function getMode() { return blendT >= 1 ? MODES[currentMode] : MODES[currentMode]; }
+
+// State
+const angles = Array.from({length: n}, (_, i) => -Math.PI/2 + (2*Math.PI*i)/n);
+let activeNode = 0;
+let arcProg = 0;
+let phase = 'node';
+let phaseTimer = 0;
+let revolution = 0;
+let energy = 0;
+let burstAlpha = 0;
+const segB = new Array(n).fill(0);
+const DECAY = 0.003;
+const trail = [];
+const TRAIL_LEN = 42;
+const nodeRings = Array.from({length: n}, () => []);
+const RING_SPEED = 1.4, RING_FADE = 0.028;
+const nodeActiveTimer = new Array(n).fill(0);
+const NODE_HOLD = 55, ARC_FRAMES = 45, MAX_REV = 5;
+
+function ease(t) { return t<0.5 ? 2*t*t : -1+(4-2*t)*t; }
+
+function segAngles(i, j) {
+  const a0 = angles[i];
+  let da = angles[j] - angles[i];
+  if (da <= 0) da += Math.PI*2;
+  return { a0, da };
+}
+
+function rgba(rgb, a) { return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`; }
+
+function drawSeg(i, j, prog, alpha, eng, m) {
+  if (prog <= 0 || alpha <= 0) return;
+  const {a0, da} = segAngles(i, j);
+  const a1 = a0 + da * prog;
+  const layers = [
+    { lw: 22, a: 0.03 },
+    { lw: 12, a: 0.07 },
+    { lw:  5, a: 0.18 },
+    { lw:  2, a: 0.9  }
+  ];
+  layers.forEach(({lw, a}) => {
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, a0, a1, false);
+    ctx.strokeStyle = rgba(m.arcGlow, alpha * a * (0.55 + eng*0.45));
+    ctx.lineWidth = lw;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  });
+}
+
+function drawParticle(angle, eng, m) {
+  const px = cx + R*Math.cos(angle), py = cy + R*Math.sin(angle);
+  ctx.beginPath();
+  ctx.arc(px, py, NODE_R*0.85, 0, Math.PI*2);
+  const grd = ctx.createRadialGradient(px, py, 0, px, py, NODE_R*0.85);
+  grd.addColorStop(0, rgba(m.arcGlow, 0.1 + eng*0.12));
+  grd.addColorStop(1, rgba(m.arcGlow, 0));
+  ctx.fillStyle = grd;
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(px, py, 9, 0, Math.PI*2);
+  ctx.fillStyle = rgba(m.particleMid, 0.5 + eng*0.3);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(px, py, 4, 0, Math.PI*2);
+  ctx.fillStyle = rgba(m.particleCore, 0.95);
+  ctx.fill();
+}
+
+function drawTrail(m) {
+  trail.forEach((pt, i) => {
+    const t = i/trail.length;
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, 1.5 + t*3.5, 0, Math.PI*2);
+    ctx.fillStyle = rgba(m.arcCore, t*0.45);
+    ctx.fill();
+  });
+}
+
+function drawBurst(a, m) {
+  if (a <= 0) return;
+  const grd = ctx.createRadialGradient(cx, cy, R-20, cx, cy, R+70);
+  grd.addColorStop(0, rgba(m.burstColor, a*0.14));
+  grd.addColorStop(1, rgba(m.burstColor, 0));
+  ctx.beginPath();
+  ctx.arc(cx, cy, R+70, 0, Math.PI*2);
+  ctx.fillStyle = grd;
+  ctx.fill();
+}
+
+function drawNode(i, m) {
+  const px = cx + R*Math.cos(angles[i]);
+  const py = cy + R*Math.sin(angles[i]);
+  const active = i === activeNode;
+  const t = nodeActiveTimer[i];
+
+  // staggered rings
+  const innerAlpha = Math.min(1, t/10) * (0.12 + energy*0.15);
+  const outerAlpha = Math.min(1, Math.max(0, (t-4)/10)) * (0.07 + energy*0.1);
+  if (innerAlpha > 0) {
+    ctx.beginPath();
+    ctx.arc(px, py, NODE_R+13, 0, Math.PI*2);
+    ctx.fillStyle = rgba(m.ringColor, innerAlpha);
+    ctx.fill();
+  }
+  if (outerAlpha > 0) {
+    ctx.beginPath();
+    ctx.arc(px, py, NODE_R+24, 0, Math.PI*2);
+    ctx.fillStyle = rgba(m.ringColor, outerAlpha);
+    ctx.fill();
+  }
+
+  // radiating rings
+  nodeRings[i].forEach(ring => {
+    ctx.beginPath();
+    ctx.arc(px, py, ring.r, 0, Math.PI*2);
+    ctx.strokeStyle = rgba(m.ringColor, ring.alpha);
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+  });
+
+  ctx.beginPath();
+  ctx.arc(px, py, NODE_R, 0, Math.PI*2);
+  ctx.fillStyle = active ? m.nodeActiveFill : m.nodeIdleFill;
+  ctx.fill();
+  ctx.strokeStyle = active
+    ? rgba(m.nodeBorderActive, 0.65 + energy*0.35)
+    : rgba(m.nodeBorderIdle, 0.5);
+  ctx.lineWidth = active ? 1.8 : 1;
+  ctx.stroke();
+
+  if (active) {
+    const grd = ctx.createRadialGradient(px, py, 0, px, py, NODE_R);
+    grd.addColorStop(0, rgba(m.nodeGlow, 0.16 + energy*0.2));
+    grd.addColorStop(1, rgba(m.nodeGlow, 0));
+    ctx.beginPath();
+    ctx.arc(px, py, NODE_R, 0, Math.PI*2);
+    ctx.fillStyle = grd;
+    ctx.fill();
+  }
+
+  ctx.fillStyle = active
+    ? rgba(m.textActive, 0.85 + energy*0.15)
+    : rgba(m.textIdle, 0.9);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const lns = m.nodes[i].label;
+  const lineH = 15;
+  const sy = py - ((lns.length-1)*lineH)/2;
+  lns.forEach((line, li) => {
+    ctx.font = active ? '600 12px Georgia,serif' : '11px Georgia,serif';
+    ctx.fillText(line, px, sy + li*lineH);
+  });
+}
+
+function draw() {
+  const m = MODES[currentMode];
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = m.bg;
+  ctx.fillRect(0, 0, W, H);
+
+  drawBurst(burstAlpha, m);
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI*2);
+  ctx.strokeStyle = m.trackColor;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  for (let i = 0; i < n; i++) {
+    const traveling = (i === activeNode && phase === 'arc');
+    if (!traveling && segB[i] > 0.01) drawSeg(i, (i+1)%n, 1, segB[i], energy, m);
+  }
+
+  if (phase === 'arc') {
+    const ep = ease(arcProg);
+    drawSeg(activeNode, (activeNode+1)%n, ep, 1.0, energy, m);
+    drawTrail(m);
+    const {a0, da} = segAngles(activeNode, (activeNode+1)%n);
+    drawParticle(a0 + da*ep, energy, m);
+  }
+
+  for (let i = 0; i < n; i++) drawNode(i, m);
+}
+
+function tick() {
+  if (burstAlpha > 0) burstAlpha = Math.max(0, burstAlpha - 0.03);
+  for (let i = 0; i < n; i++) segB[i] = Math.max(0, segB[i] - DECAY);
+  for (let i = 0; i < n; i++) {
+    if (i === activeNode) nodeActiveTimer[i] = Math.min(nodeActiveTimer[i]+1, 60);
+    else nodeActiveTimer[i] = 0;
+  }
+  for (let i = 0; i < n; i++) {
+    nodeRings[i] = nodeRings[i]
+      .map(r => ({ r: r.r + RING_SPEED, alpha: r.alpha - RING_FADE }))
+      .filter(r => r.alpha > 0);
+  }
+
+  if (phase === 'node') {
+    phaseTimer++;
+    if (phaseTimer >= NODE_HOLD) {
+      phase = 'arc'; arcProg = 0; trail.length = 0;
+    }
+  } else {
+    arcProg += 1/ARC_FRAMES;
+    const {a0, da} = segAngles(activeNode, (activeNode+1)%n);
+    const tipA = a0 + da*ease(arcProg);
+    trail.push({ x: cx + R*Math.cos(tipA), y: cy + R*Math.sin(tipA) });
+    if (trail.length > TRAIL_LEN) trail.shift();
+
+    if (arcProg >= 1) {
+      segB[activeNode] = 1;
+      activeNode = (activeNode+1)%n;
+      nodeRings[activeNode].push({ r: NODE_R, alpha: 0.55 + energy*0.3 });
+      phase = 'node'; phaseTimer = 0; trail.length = 0;
+      if (activeNode === 0) {
+        revolution++;
+        energy = Math.min(1, revolution/MAX_REV);
+        burstAlpha = 0.45 + energy*0.4;
+      }
+    }
+  }
+
+  draw();
+  requestAnimationFrame(tick);
+}
+
+function resetState() {
+  activeNode = 0; arcProg = 0; phase = 'node'; phaseTimer = 0;
+  revolution = 0; energy = 0; burstAlpha = 0;
+  segB.fill(0); trail.length = 0;
+  nodeRings.forEach(r => r.length = 0);
+  nodeActiveTimer.fill(0);
+}
+
+function setMode(mode) {
+  if (mode === currentMode) return;
+  currentMode = mode;
+  resetState();
+
+  const m = MODES[mode];
+  document.getElementById('qs-ttl').style.color = mode === 'ai' ? '#c8d8ff' : '#f0c87a';
+  document.getElementById('qs-sub').style.color = mode === 'ai' ? '#4a6aaa' : '#8a6a2a';
+  document.getElementById('qs-ttl').textContent = m.title;
+  document.getElementById('qs-sub').textContent = m.subtitle;
+
+  document.getElementById('btn-human').className = mode === 'human' ? 'active-human' : 'inactive';
+  document.getElementById('btn-ai').className = mode === 'ai' ? 'active-ai' : 'inactive';
+}
+
+draw();
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
