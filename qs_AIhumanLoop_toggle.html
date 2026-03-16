@@ -398,6 +398,8 @@ function setMode(mode) {
   document.getElementById('btn-ai').className = mode === 'ai' ? 'active-ai' : 'inactive';
 }
 
+document.getElementById('qs-ttl').style.color = '#c8d8ff';
+document.getElementById('qs-sub').style.color = '#4a6aaa';
 draw();
 requestAnimationFrame(tick);
 </script>
