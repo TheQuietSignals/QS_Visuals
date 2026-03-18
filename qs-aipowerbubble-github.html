@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>From One Prompt to One Data Center · Quiet Signals</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #0f0f0f; width: 100%; }
+  body { font-family: Georgia, serif; padding: clamp(16px, 4vw, 36px); }
+  #qs-root { max-width: 860px; margin: 0 auto; }
+</style>
+</head>
+<body>
+<div id="qs-root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+const tiers = [
+  { id: "datacenter", label: "Data Center",  sub: "Single hyperscale facility", kwh: 1_050_000_000, r: 370, color: "#c45f00" },
+  { id: "enterprise", label: "Enterprise",   sub: "200 employees, annual",      kwh: 50_000,        r: 252, color: "#1a4f8a" },
+  { id: "poweruser",  label: "Power User",   sub: "Annual / heavy workload",    kwh: 250,           r: 162, color: "#1e6abf" },
+  { id: "casual",     label: "Casual User",  sub: "Annual / 20 queries/day",    kwh: 24,            r: 108, color: "#3482d4" },
+  { id: "video",      label: "One Video",    sub: "5-second AI clip",           kwh: 1,             r: 62,  color: "#5ba0e0" },
+  { id: "image",      label: "One Image",    sub: "AI-generated",               kwh: 0.0006,        r: 32,  color: "#8bbce8" },
+  { id: "query",      label: "One Prompt",   sub: "ChatGPT query",              kwh: 0.0003,        r: 17,  color: "#bcd6f2" },
+];
+
+const SOLAR_R = 178;
+const CX = 410, CY = 410, SZ = 820;
+
+const descriptions = {
+  datacenter: "The largest facilities under construction are expected to use 20× this amount.",
+  enterprise: "Illustrative estimate based on 200 employees at power-user consumption levels.",
+  poweruser:  "Generating videos, extended research sessions, processing documents daily.",
+  casual:     "About what your phone charger uses over the same period.",
+  video:      "Equivalent to running your refrigerator for a full day.",
+  image:      "Per AI-generated image. Varies by model and resolution.",
+  query:      "Roughly 10× the energy of a standard Google search.",
+};
+
+function fmt(kwh) {
+  if (kwh < 0.001) return `${(kwh * 1000).toFixed(1)} Wh`;
+  if (kwh < 1)     return `${(kwh * 1000).toFixed(1)} Wh`;
+  if (kwh < 1_000) return `${kwh} kWh`;
+  if (kwh < 1_000_000) return `${(kwh / 1000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}k kWh`;
+  if (kwh < 1_000_000_000) return `${(kwh / 1_000_000).toFixed(1)}M kWh`;
+  return `${(kwh / 1_000_000_000).toFixed(2)}B kWh`;
+}
+
+const bandMid = {
+  datacenter: (370 + 252) / 2,
+  enterprise: (252 + 162) / 2,
+  poweruser:  (162 + 108) / 2,
+  casual:     (108 + 62)  / 2,
+  video:      (62  + 32)  / 2,
+};
+
+function App() {
+  const [hovered, setHovered] = useState(null);
+  const hoveredTier = tiers.find(t => t.id === hovered);
+
+  const solarRad = ((52 - 90) * Math.PI) / 180;
+  const sx = CX + (SOLAR_R + 28) * Math.cos(solarRad);
+  const sy = CY + (SOLAR_R + 28) * Math.sin(solarRad);
+
+  return (
+    <div id="qs-root">
+      {/* Header */}
+      <div style={{ marginBottom: 6 }}>
+        <div style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "#666", marginBottom: 8 }}>Quiet Signals · Data Visualization</div>
+        <div style={{ fontSize: 22, fontWeight: 700, color: "#f0ede8", lineHeight: 1.3 }}>From One Prompt to One Data Center</div>
+        <div style={{ fontSize: 13, color: "#888", marginTop: 5 }}>Annual kWh equivalents across all three tiers of AI consumption · logarithmic scale</div>
+      </div>
+
+      {/* Chart */}
+      <svg viewBox={`0 0 ${SZ} ${SZ}`} width="100%" style={{ display: "block", marginTop: 8 }}>
+        {tiers.map(t => (
+          <circle key={t.id} cx={CX} cy={CY} r={t.r}
+            fill={t.color}
+            stroke={hovered === t.id ? "#fff" : "rgba(255,255,255,0.12)"}
+            strokeWidth={hovered === t.id ? 2.5 : 1}
+            style={{ cursor: "pointer", transition: "stroke 0.15s" }}
+            onMouseEnter={() => setHovered(t.id)}
+            onMouseLeave={() => setHovered(null)}
+          />
+        ))}
+
+        {/* Solar ring */}
+        <circle cx={CX} cy={CY} r={SOLAR_R} fill="none" stroke="#f5d000" strokeWidth={2.5} strokeDasharray="9 5" />
+        <g pointerEvents="none">
+          <text x={sx} y={sy - 6}  textAnchor="middle" fill="#f5d000" fontSize={12} fontWeight="700" fontStyle="italic">☀ one rooftop solar panel</text>
+          <text x={sx} y={sy + 9} textAnchor="middle" fill="#f5d000" fontSize={11} fontWeight="700">~400 kWh / yr</text>
+        </g>
+
+        {/* Ring labels */}
+        <g pointerEvents="none">
+          <text x={CX} y={CY - bandMid.datacenter - 8} textAnchor="middle" fill="white" fontSize={15} fontWeight="700">Data Center</text>
+          <text x={CX} y={CY - bandMid.datacenter + 9} textAnchor="middle" fill="rgba(255,255,255,0.72)" fontSize={13.5}>{fmt(1_050_000_000)} / yr</text>
+        </g>
+        <g pointerEvents="none">
+          <text x={CX} y={CY - bandMid.enterprise - 8} textAnchor="middle" fill="white" fontSize={14.5} fontWeight="700">Enterprise</text>
+          <text x={CX} y={CY - bandMid.enterprise + 9} textAnchor="middle" fill="rgba(255,255,255,0.72)" fontSize={13}>{fmt(50_000)} / yr</text>
+        </g>
+        <g pointerEvents="none">
+          <text x={CX} y={CY - bandMid.poweruser - 7} textAnchor="middle" fill="white" fontSize={14} fontWeight="700">Power User</text>
+          <text x={CX} y={CY - bandMid.poweruser + 9} textAnchor="middle" fill="rgba(255,255,255,0.72)" fontSize={12.5}>{fmt(250)} / yr</text>
+        </g>
+        <g pointerEvents="none">
+          <text x={CX} y={CY - bandMid.casual - 6} textAnchor="middle" fill="white" fontSize={13} fontWeight="700">Casual User</text>
+          <text x={CX} y={CY - bandMid.casual + 8} textAnchor="middle" fill="rgba(255,255,255,0.72)" fontSize={11.5}>{fmt(24)} / yr</text>
+        </g>
+        <g pointerEvents="none">
+          <text x={CX} y={CY - bandMid.video - 5} textAnchor="middle" fill="white" fontSize={11.5} fontWeight="700">One Video</text>
+          <text x={CX} y={CY - bandMid.video + 8} textAnchor="middle" fill="rgba(255,255,255,0.72)" fontSize={10.5}>{fmt(1)}</text>
+        </g>
+
+        {/* One Image — below center ring */}
+        <line x1={CX} y1={CY + 32} x2={CX} y2={CY + 42} stroke="white" strokeWidth={0.8} />
+        <g pointerEvents="none">
+          <text x={CX} y={CY + 48} textAnchor="middle" fill="white" fontSize={10.5} fontWeight="700">One Image</text>
+          <text x={CX} y={CY + 61} textAnchor="middle" fill="rgba(255,255,255,0.72)" fontSize={9.5}>{fmt(0.0006)}</text>
+        </g>
+
+        {/* One Prompt — 3 o'clock */}
+        <line x1={CX + 17} y1={CY} x2={CX + 58} y2={CY} stroke="#ccc" strokeWidth={0.8} />
+        <g pointerEvents="none">
+          <text x={CX + 64} y={CY - 6}  fill="#e8e4de" fontSize={12} fontWeight="700">One Prompt</text>
+          <text x={CX + 64} y={CY + 9} fill="#e8e4de" fontSize={11}>{fmt(0.0003)}</text>
+        </g>
+      </svg>
+
+      {/* Hover info panel */}
+      <div style={{
+        minHeight: 68, marginTop: 4, padding: "16px 20px", borderRadius: 6,
+        background: hoveredTier ? hoveredTier.color : "#1a1a1a",
+        transition: "background 0.2s"
+      }}>
+        {hoveredTier ? (
+          <div>
+            <span style={{ fontWeight: 700, fontSize: 16, color: "white" }}>{hoveredTier.label}</span>
+            <span style={{ color: "rgba(255,255,255,0.72)", fontSize: 14 }}>
+              {" — "}{fmt(hoveredTier.kwh)}
+              {!["query","image","video"].includes(hoveredTier.id) ? " per year" : ""}
+            </span>
+            <div style={{ color: "rgba(255,255,255,0.82)", fontSize: 13.5, marginTop: 5 }}>{descriptions[hoveredTier.id]}</div>
+          </div>
+        ) : (
+          <div style={{ color: "#555", fontSize: 13, fontStyle: "italic" }}>Hover over any ring to see details</div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div style={{ marginTop: 14, fontSize: 11, color: "#444", borderTop: "1px solid #222", paddingTop: 10, lineHeight: 1.9 }}>
+        Sources: IAEI Magazine · AI Multiple · U.S. Energy Information Administration · Pew Research Center
+        <span style={{ display: "block", color: "#3a3a3a" }}>Enterprise figure is an illustrative estimate. Log scale used for visual legibility.</span>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById("qs-root"));
+</script>
+</body>
+</html>
