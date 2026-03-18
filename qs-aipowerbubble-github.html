@@ -10,7 +10,7 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { background: #0f0f0f; width: 100%; }
-  body { font-family: Georgia, serif; padding: clamp(16px, 4vw, 36px); }
+  body { font-family: Georgia, serif; padding: 16px; }
   #qs-root { max-width: 860px; margin: 0 auto; }
 </style>
 </head>
@@ -86,6 +86,8 @@ function App() {
             style={{ cursor: "pointer", transition: "stroke 0.15s" }}
             onMouseEnter={() => setHovered(t.id)}
             onMouseLeave={() => setHovered(null)}
+            onTouchStart={(e) => { e.preventDefault(); setHovered(t.id); }}
+            onTouchEnd={() => setHovered(null)}
           />
         ))}
 
